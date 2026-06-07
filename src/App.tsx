@@ -3,6 +3,8 @@ import CalendarPage from './pages/CalendarPage'
 import TodayPage from './pages/TodayPage'
 import WorkoutPlayer from './pages/WorkoutPlayer'
 import ProgressPage from './pages/ProgressPage'
+import ProteinPage from './pages/ProteinPage'
+import SettingsPage from './pages/SettingsPage'
 
 function TabBar() {
   const { pathname } = useLocation()
@@ -13,6 +15,8 @@ function TabBar() {
     { to: '/', label: '오늘', ico: '🏠', end: true },
     { to: '/calendar', label: '캘린더', ico: '📅', end: false },
     { to: '/progress', label: '진행', ico: '📈', end: false },
+    { to: '/protein', label: '단백질', ico: '🥤', end: false },
+    { to: '/settings', label: '설정', ico: '⚙️', end: false },
   ]
 
   return (
@@ -35,6 +39,8 @@ export default function App() {
           <Route path="/" element={<TodayPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/protein" element={<ProteinPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/workout" element={<WorkoutPlayer />} />
         </Routes>
         <TabBar />

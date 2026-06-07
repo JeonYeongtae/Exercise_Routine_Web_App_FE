@@ -32,6 +32,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // 푸시 알림 핸들러(push/notificationclick)를 생성된 SW에 합친다
+        importScripts: ['push-sw.js'],
       },
       devOptions: {
         // dev 환경에서도 PWA 동작 확인 가능

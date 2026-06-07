@@ -10,6 +10,9 @@
   진동, 화면 꺼짐 방지(Wake Lock)
 - 📈 **자동 과부하(progressive overload) 엔진** — 세트마다 강도(RPE)를 입력하면,
   목표를 다 채웠을 때 횟수를 올리고 → 범위 최대치에 도달하면 **더 어려운 변형으로 자동 승급**
+- 🥤 **단백질 기록** — 체중 기반 목표 단백질(g) 대비 섭취량 추적, 빠른 추가 프리셋
+- 🔔 **예약 운동 알림** — "앱을 안 열어도 오는" 푸시 알림 (별도 백엔드, 아래 참고)
+- ⚙️ **설정** — 운동 시작점(변형·세트·목표) 직접 조정 + 알림 관리
 - 💾 **오프라인 우선** — 모든 데이터는 폰 안(IndexedDB)에 저장, 인터넷 없이 동작
 
 ## 운동 설계 의도
@@ -26,7 +29,8 @@
 | 코어 | 플랭크 → 행잉 니레이즈 → 행잉 레그레이즈 |
 
 > 출발점은 정체기 탈출을 위해 "개수↓ 난이도↑"로 잡혀 있습니다(예: 푸시업은 디클라인 10회부터).
-> 진행 상태는 `src/domain/progression.ts`의 `initialProgress()`에서 조정할 수 있어요.
+> 너무 쉽거나 어려우면 **앱 설정 → 운동 시작점 조정**에서 변형·세트·목표를 바로 바꿀 수 있어요
+> (기본값은 `src/domain/progression.ts`의 `initialProgress()`).
 
 ## 실행
 
@@ -64,19 +68,26 @@ src/
     types.ts        타입
     exercises.ts    운동 라이브러리 + 난이도 사다리
     progression.ts  ★ 과부하 엔진 (PT 두뇌)
-  db/db.ts       # Dexie 스키마 + 초기 시드
-  lib/           # coach(음성/비프/진동), date 유틸
+    nutrition.ts    단백질 목표 계산 + 식품 프리셋
+  db/db.ts       # Dexie 스키마(progress/sessions/settings/protein) + 초기 시드
+  lib/           # coach(음성/비프/진동), date 유틸, push(웹 푸시 구독)
   hooks/         # useWakeLock
-  pages/         # TodayPage / CalendarPage / WorkoutPlayer / ProgressPage
+  pages/         # Today / Calendar / WorkoutPlayer / Progress / Protein / Settings
+public/push-sw.js  # 푸시 핸들러(생성된 SW가 importScripts)
 ```
 
-## Phase 2 — 푸시 알림 (예정)
+## 예약 푸시 알림 (구현됨)
 
 iOS PWA에는 "예약 로컬 알림" API가 없어, "앱을 안 열어도 오는 운동 알림"은
-**외부 푸시 서버**가 필요합니다. 계획:
+**외부 푸시 서버**가 필요합니다. 별도 백엔드로 구현돼 있습니다:
 
-- `server/` : Node + `web-push`(VAPID) + `node-cron`
-- 클라이언트: 알림 권한 요청 → 구독(subscription) 등록 → 서버가 정해진 시간에 푸시 발송
-- 무료 호스팅(Render/Railway/Fly.io)에 배포
+- 백엔드: [Exercise_Routine_Web_App_BE](../Exercise_Routine_Web_App_BE) — Node + `web-push`(VAPID) + `node-cron`
+- 클라이언트: 설정 화면에서 서버 주소·시간 지정 → 권한 요청 → 구독 등록 → 서버가 운동일 정시에 푸시
+- 무료 호스팅(Render 등)에 배포
 
 > 알림 없이도 "운동 시작 → 실시간 진행"은 100% 동작합니다. 알림은 부가 기능입니다.
+
+## 배포 & 실기기 점검
+
+음성·진동·Wake Lock·푸시는 실제 아이폰에서 동작이 다릅니다. 배포 방법과 점검
+체크리스트는 **[docs/DEPLOY_AND_TEST.md](docs/DEPLOY_AND_TEST.md)** 참고.

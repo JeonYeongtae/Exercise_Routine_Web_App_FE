@@ -91,3 +91,12 @@ export interface SessionLog {
   completedAt?: number
   entries: SetEntry[]
 }
+
+/** 단백질 섭취 1건 기록 */
+export interface ProteinEntry {
+  id?: number
+  date: string // 'yyyy-MM-dd'
+  grams: number
+  label: string
+  at: number // 기록 시각(ms)
+}

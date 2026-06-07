@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { ProgressState, SessionLog } from '../domain/types'
+import type { ProgressState, ProteinEntry, SessionLog } from '../domain/types'
 import { initialProgress } from '../domain/progression'
 
 // ── 로컬 저장소 (IndexedDB via Dexie) ─────────────────────────────
@@ -15,6 +15,7 @@ class HomePTDatabase extends Dexie {
   progress!: EntityTable<ProgressState, 'ladderId'>
   sessions!: EntityTable<SessionLog, 'id'>
   settings!: EntityTable<Setting, 'key'>
+  protein!: EntityTable<ProteinEntry, 'id'>
 
   constructor() {
     super('homept')
@@ -22,6 +23,10 @@ class HomePTDatabase extends Dexie {
       progress: 'ladderId',
       sessions: '++id, date, completedAt',
       settings: 'key',
+    })
+    // v2: 단백질 섭취 기록 테이블 추가
+    this.version(2).stores({
+      protein: '++id, date',
     })
   }
 }
@@ -59,4 +64,20 @@ export async function getSetting<T>(key: string, fallback: T): Promise<T> {
 /** 설정 값 쓰기 */
 export async function setSetting(key: string, value: unknown): Promise<void> {
   await db.settings.put({ key, value })
+}
+
+/** 단백질 섭취 기록 추가 */
+export async function addProtein(date: string, grams: number, label: string): Promise<void> {
+  await db.protein.add({ date, grams, label, at: Date.now() })
+}
+
+/** 단백질 기록 삭제 */
+export async function deleteProtein(id: number): Promise<void> {
+  await db.protein.delete(id)
+}
+
+/** 진행 상태를 초기 시작점으로 되돌린다 (튜닝 중 망쳤을 때) */
+export async function resetProgress(): Promise<void> {
+  await db.progress.clear()
+  await db.progress.bulkPut(initialProgress())
 }
