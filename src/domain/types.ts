@@ -3,6 +3,18 @@
 /** 동작 패턴: 밀기 / 당기기 / 코어 / 하체 */
 export type MovementPattern = 'push' | 'pull' | 'core' | 'legs'
 
+/** 한 회(rep)의 이상적 템포(초). 근비대를 위해 보통 내려갈 때 천천히, 올라갈 때 빠르게. */
+export interface Tempo {
+  /** 내려가기(이심성) 초 */
+  down: number
+  /** 올라가기(구심성) 초 */
+  up: number
+  /** 맨 아래 정지 초 (선택) */
+  pauseDown?: number
+  /** 맨 위 정지 초 (선택) */
+  pauseUp?: number
+}
+
 /** 운동 측정 방식: 횟수(reps) / 시간 버티기(hold) */
 export type ExerciseKind = 'reps' | 'hold'
 
@@ -24,6 +36,10 @@ export interface Exercise {
   cues: string[]
   /** hold 방식일 때 기본 목표 초, reps일 때는 무시 */
   defaultHoldSec?: number
+  /** reps 운동의 권장 템포 (없으면 기본값 사용). hold 운동은 무시 */
+  tempo?: Tempo
+  /** 자세히 보기용 상세 설명 (단계별 세팅·호흡·흔한 실수) */
+  detail?: string[]
 }
 
 /** 난이도 사다리: 쉬움 → 어려움 순서의 운동 id 배열 */

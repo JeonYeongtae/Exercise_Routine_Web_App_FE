@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, getProgressStates, saveSession } from '../db/db'
-import { getExercise } from '../domain/exercises'
+import { getExercise, getTempo } from '../domain/exercises'
 import { applyProgression, buildDayPlan } from '../domain/progression'
 import type { ProgressionResult } from '../domain/progression'
 import type { SetEntry, SessionLog } from '../domain/types'
 import { dateKey, fmtClock } from '../lib/date'
 import { beep, speak, startBeep, tick, unlockAudio, vibrate } from '../lib/coach'
 import { useWakeLock } from '../hooks/useWakeLock'
+import TempoGuide from '../components/TempoGuide'
 
 type Phase = 'intro' | 'announce' | 'work' | 'log' | 'rest' | 'done'
 
@@ -31,6 +32,8 @@ export default function WorkoutPlayer() {
   const [secondsLeft, setSecondsLeft] = useState(0)
   const [logReps, setLogReps] = useState(0)
   const [summary, setSummary] = useState<ProgressionResult[] | null>(null)
+  const [tempoOn, setTempoOn] = useState(false)
+  const [showTempoInfo, setShowTempoInfo] = useState(false)
 
   const deadlineRef = useRef(0)
   const startedAtRef = useRef(Date.now())
@@ -191,6 +194,28 @@ export default function WorkoutPlayer() {
 
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: '16px', paddingTop: 'calc(16px + var(--sat))' }}>
+      {/* 템포 가이드 설명 모달 */}
+      {showTempoInfo && (
+        <div
+          onClick={() => setShowTempoInfo(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 100 }}
+        >
+          <div className="card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 360 }}>
+            <h2 style={{ fontSize: 18, marginBottom: 10 }}>🎯 템포 가이드란?</h2>
+            <p style={{ fontSize: 14, lineHeight: 1.65 }}>
+              도넛이 채워지는 속도에 맞춰 움직이는 페이스 도우미예요.
+              <br />
+              <strong>내려갈 때 천천히</strong>(예: 3초), <strong>올라갈 때 빠르게</strong>(1초) 움직이면
+              근육의 긴장 시간(TUT)이 늘어 같은 횟수로도 더 강한 자극을 줍니다. 단계가 바뀔 때 소리로도
+              알려드려요.
+            </p>
+            <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => setShowTempoInfo(false)}>
+              알겠어요
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 상단: 진행바 + 나가기 */}
       {phase !== 'done' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
@@ -260,10 +285,50 @@ export default function WorkoutPlayer() {
                 일찍 끝내기
               </button>
             </>
+          ) : tempoOn ? (
+            <>
+              <div className="faint" style={{ marginBottom: 6 }}>목표 {block.target}회 · 템포 가이드</div>
+              <TempoGuide
+                tempo={getTempo(ex)}
+                target={block.target}
+                onComplete={(reps) => { vibrate(120); openLog(reps) }}
+              />
+              <button
+                className="btn btn-ghost"
+                style={{ width: 'auto', padding: '10px 20px', marginTop: 14 }}
+                onClick={() => setTempoOn(false)}
+              >
+                가이드 끄기
+              </button>
+            </>
           ) : (
             <>
               <div style={{ fontSize: 96, fontWeight: 800, color: 'var(--accent)' }}>{block.target}</div>
-              <div className="muted" style={{ marginBottom: 32 }}>회 목표 · 천천히 정확하게</div>
+              <div className="muted" style={{ marginBottom: 22 }}>회 목표 · 천천히 정확하게</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 22 }}>
+                <button
+                  className="btn btn-ghost"
+                  style={{ width: 'auto', padding: '10px 18px' }}
+                  onClick={() => setTempoOn(true)}
+                >
+                  🎯 템포 가이드
+                </button>
+                <button
+                  aria-label="템포 가이드 설명"
+                  onClick={() => setShowTempoInfo(true)}
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: '50%',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-dim)',
+                    fontStyle: 'italic',
+                    fontWeight: 700,
+                  }}
+                >
+                  i
+                </button>
+              </div>
               <button className="btn btn-primary" style={{ maxWidth: 280 }} onClick={() => { beep(880, 120); openLog(block.target) }}>세트 완료 ✓</button>
             </>
           )}

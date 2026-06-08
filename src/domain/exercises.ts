@@ -1,4 +1,4 @@
-import type { Exercise, Ladder } from './types'
+import type { Exercise, Ladder, Tempo } from './types'
 
 // ── 운동 라이브러리 ────────────────────────────────────────────────
 // 각 운동은 "난이도 사다리(ladder)" 안의 한 칸이다.
@@ -213,4 +213,20 @@ export function getLadder(id: string): Ladder {
   const l = LADDERS[id]
   if (!l) throw new Error(`Unknown ladder: ${id}`)
   return l
+}
+
+// ── 권장 템포 (이상적 운동 페이스) ────────────────────────────────
+/** 기본 템포: 내려갈 때 3초(천천히), 올라갈 때 1초. 근비대용 표준. */
+export const DEFAULT_TEMPO: Tempo = { down: 3, up: 1 }
+
+/** 운동별 특수 템포 (지정 안 된 운동은 DEFAULT_TEMPO 사용) */
+const TEMPO_OVERRIDES: Record<string, Tempo> = {
+  'dip-tempo': { down: 3, up: 1, pauseDown: 1 }, // 맨 아래에서 1초 정지
+  'pullup-negative': { down: 5, up: 1 }, // 네거티브: 5초에 걸쳐 천천히 하강
+  'pushup-pseudo': { down: 4, up: 2 }, // 의족: 어깨 부담 커서 더 느리게
+}
+
+/** reps 운동의 권장 템포를 돌려준다. */
+export function getTempo(ex: Exercise): Tempo {
+  return ex.tempo ?? TEMPO_OVERRIDES[ex.id] ?? DEFAULT_TEMPO
 }
