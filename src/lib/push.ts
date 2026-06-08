@@ -87,6 +87,8 @@ export async function enablePush(opts: ReminderOptions): Promise<void> {
       hour: opts.hour,
       minute: opts.minute,
       weekdays: opts.weekdays,
+      // 서버(UTC)가 사용자 현지 시각으로 판정하도록 타임존 전송 (예: 'Asia/Seoul')
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }),
   })
   if (!res.ok) throw new Error('서버에 구독을 등록하지 못했어요.')
