@@ -190,7 +190,7 @@ export default function WorkoutPlayer() {
   const progressPct = Math.round((completedSets / totalSets) * 100)
 
   return (
-    <div style={{ minHeight: '100svh', display: 'flex', flexDirection: 'column', padding: '16px', paddingTop: 'calc(16px + var(--sat))' }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: '16px', paddingTop: 'calc(16px + var(--sat))' }}>
       {/* 상단: 진행바 + 나가기 */}
       {phase !== 'done' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
